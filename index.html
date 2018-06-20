@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Crud Ajax</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm"
+        crossorigin="anonymous">
+</head>
+
+<body>
+    <div class="container mt-5">
+        <div class="row">
+            <div class="col-2"></div>
+            <div class="col-8">
+                <h1>Cadastro de alunos</h1>
+                <form id="cadastro_aluno" action="javascript:;" enctype="multipart/form-data">
+                    <div class="form-group">
+                        <label for="exampleInputEmail1">Nome Completo</label>
+                        <input name="nome" type="text" class="form-control" id="nome" placeholder="Nome Completo">
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">Cadastrar</button>
+                </form>
+            </div>
+            <div class="col-2"></div>
+            <div class="col-2"></div>
+            <div class="col-8">
+                <div id="list-all"></div>
+            </div>
+            <div class="col-2"></div>
+        </div>
+    </div>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
+        crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
+        crossorigin="anonymous"></script>
+
+    <script>
+        $(function () {
+            var base = "http://localhost:8000/api/";
+
+            // cadastrar aluno
+            $("#cadastro_aluno").on("submit", function (e) {
+                var data = $(this).serializeArray();
+                $.post(base + "aluno", data, function (callback) {
+                    listAlunos();
+                });
+            });
+
+            // apagar aluno
+            $("body").on("click", ".deleteit", function (e) {
+                var id = $(this).attr('id');
+                $.ajax({
+                    url: base + "aluno/" + id,
+                    type: "DELETE",
+                    success: function (callback) {
+                        listAlunos();
+                    },
+                    data: { id: id },
+                    contentType: 'jsonp'
+                });
+            });
+
+            // editar aluno
+            $("body").on("click", ".editit", function (e) {
+                var id = $(this).attr('id');
+                $.ajax({
+                    url: base + "aluno/" + id,
+                    type: "PUT",
+                    contentType: 'application/json',
+                    success: function (callback) {
+                        listAlunos();
+                    },
+                    data: JSON.stringify({ "nome": $('#aluno_' + id).val() })
+                });
+            });
+
+            // listar todos os alunos
+            function listAlunos() {
+                var list = '<table class="table mt-5">';
+                $.get(base + "aluno", {}, function (callback) {
+                    if (callback) {
+                        for (let index = 0; index < callback.length; index++) {
+                            const aluno = callback[index];
+                            list += '<tr><td><input class="form-control" type="text" value="' + aluno.nome + '" id="aluno_' + aluno.id + '"/></td>';
+                            list += '<td class="text-right"><button class="btn btn-sm btn-success editit" id="' + aluno.id + '">Salvar</button></td>';
+                            list += '<td class="text-right"><button class="btn btn-sm btn-danger deleteit" id="' + aluno.id + '">Apagar</button></td></tr>';
+                        }
+                    }
+                    list += '</table>';
+                    $("#list-all").html(list);
+                }, "json");
+            }
+            // init
+            listAlunos();
+
+        });
+
+
+    </script>
+</body>
+
+</html>
